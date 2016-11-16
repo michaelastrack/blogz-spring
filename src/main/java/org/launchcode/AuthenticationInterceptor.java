@@ -21,6 +21,7 @@ public class AuthenticationInterceptor extends HandlerInterceptorAdapter {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
 
+    	// list of restricted urls
         List<String> authPages = Arrays.asList("/blog/newpost");
 
         // Require sign-in for auth pages
