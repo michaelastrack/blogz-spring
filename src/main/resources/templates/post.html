@@ -8,5 +8,12 @@
 
 	<!-- TODO - display a single blog post -->
 
+	<h2 class="post-title" th:value= "${post.title}"></h2>
+	<p class="post-body" th:value= "${post.body}"> </p>
+	
+	<p class="post-author" th:value = "written on ${#dates.format(post.created, 'yyyy-MM-dd')}">
+    
+	</p>
+	<p class= "post-author">written by <a href = "/blog/{{post.author.username}}">{{ post.author.username }} </a> </p>
 </body>
 </html>

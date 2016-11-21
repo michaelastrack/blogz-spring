@@ -4,6 +4,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.launchcode.blogz.models.User;
+import org.launchcode.blogz.models.dao.UserDao;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,6 +13,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 @Controller
 public class AuthenticationController extends AbstractController {
+	
+	@Autowired
+	private UserDao userdao;
 	
 	@RequestMapping(value = "/signup", method = RequestMethod.GET)
 	public String signupForm() {
@@ -22,12 +27,33 @@ public class AuthenticationController extends AbstractController {
 		
 		// TODO - implement signup
 		
-		// get parameters from the request object
+		String username = request.getParameter("username");
+		String password = request.getParameter("password");
+		String verify = request.getParameter("verify");
 		
-		// validate parameters (username, password, verify)
+		if (!User.isValidPassword(password) || !User.isValidUsername(username) || !password.equals(verify)) {
+			model.addAttribute("username", username);
+			if (!User.isValidUsername(username)) {
+				String username_error = "Invalid Username.";
+				model.addAttribute("username_error", username_error);
+			}
+			
+			if (!User.isValidPassword(password)) {
+				String password_error = "Invalid Password.";
+				model.addAttribute("password_error", password_error);
+			}
+			if (!password.equals(verify)) {
+				String verify_error = "Passwords Do Not Match.";
+				model.addAttribute("verify_error", verify_error);
+			}
+			return "signup";
+		}
 		
-		// if parameters are valid, create a new User, and store it in the session - AbstractController - setuserinsession
-		// Session thisSession = request.getSession();
+		User newuser = new User (username, password);
+		userdao.save(newuser);
+		HttpSession thisSession = request.getSession();
+		setUserInSession (thisSession, newuser);
+		
 		
 		return "redirect:blog/newpost";
 	}
@@ -42,12 +68,17 @@ public class AuthenticationController extends AbstractController {
 		
 		// TODO - implement login
 		
-		// get parameters from request
-		// get user from username
-		// check that password is correct
-		// if there is a problem redirect back to the login page, and pass in a new error message
-		// log them in - set the user in the session
-		// possibly create method to log a user in that would work both here and in signup - save user to database using userdao
+		String username = request.getParameter("username");
+		String password = request.getParameter("password");
+		User user = userdao.findByUsername(username);
+		if (!user.isMatchingPassword(password)) {
+			String error = "Incorrect Password.";
+			model.addAttribute("error", error);
+			model.addAttribute("username", username);
+			return "login";
+		}
+		HttpSession thisSession = request.getSession();
+		setUserInSession (thisSession, user);
 		
 		return "redirect:blog/newpost";
 	}
